@@ -261,3 +261,11 @@ def add_header(r):
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html'), 404
+
+
+@app.route('/users/<int:user_id>/messages/<int:message_id>/like')
+def messages_like(user_id, message_id):
+    message = Message.query.get_or_404(message_id)
+    current_user.likes.append(message)
+    db.session.commit()
+    redirect(url_for('root'))

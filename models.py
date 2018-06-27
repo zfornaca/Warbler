@@ -22,6 +22,26 @@ FollowersFollowee = db.Table(
               db.ForeignKey('users.id', ondelete="cascade")),
     db.CheckConstraint('follower_id != followee_id', name="no_self_follow"))
 
+# Likes = db.table(
+#     'likes',
+#     db.Column(
+#         'user_id',
+#         db.Integer,
+#         db.ForeignKey('users.id', ondelete="cascade"),
+#         primary_key=True),
+#     db.Column(
+#         'message_id',
+#         db.Integer,
+#         db.ForeignKey('messages.id', ondelete="cascade"),
+#         primary_key=True))
+
+Likes = db.Table(
+    'likes', db.Column('id', db.Integer, primary_key=True),
+    db.Column('user_id', db.Integer,
+              db.ForeignKey('users.id', ondelete="cascade")),
+    db.Column('message_id', db.Integer,
+              db.ForeignKey('messages.id', ondelete="cascade")))
+
 
 class User(db.Model, UserMixin):
 
@@ -36,6 +56,8 @@ class User(db.Model, UserMixin):
     location = db.Column(db.Text)
     password = db.Column(db.Text)
     messages = db.relationship('Message', backref='user', lazy='dynamic')
+    likes = db.relationship(
+        'Message', secondary=Likes, backref=db.backref('likers'))
     followers = db.relationship(
         "User",
         secondary=FollowersFollowee,
@@ -66,3 +88,6 @@ class User(db.Model, UserMixin):
             if is_authenticated:
                 return found_user
         return False
+
+
+db.create_all()
