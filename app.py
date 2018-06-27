@@ -7,7 +7,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_migrate import Migrate
 from sqlalchemy.exc import IntegrityError
-from forms import UserForm, LoginForm, MessageForm
+from forms import UserForm, LoginForm, MessageForm, EditUserForm
 from decorators import ensure_correct_user
 
 app = Flask(__name__)
@@ -37,7 +37,7 @@ from models import User, Message
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return User.query.get_or_404(user_id)
 
 
 login_manager.login_view = "users_login"
@@ -112,7 +112,7 @@ def users_logout():
 @app.route('/users/<int:follower_id>/followers', methods=['POST'])
 @login_required
 def followers_create(follower_id):
-    followed = User.query.get(follower_id)
+    followed = User.query.get_or_404(follower_id)
     current_user.following.append(followed)
     db.session.add(current_user)
     db.session.commit()
@@ -122,7 +122,7 @@ def followers_create(follower_id):
 @app.route('/users/<int:follower_id>/followers', methods=['DELETE'])
 @login_required
 def followers_destroy(follower_id):
-    followed = User.query.get(follower_id)
+    followed = User.query.get_or_404(follower_id)
     current_user.following.remove(followed)
     db.session.add(current_user)
     db.session.commit()
@@ -133,19 +133,19 @@ def followers_destroy(follower_id):
 @login_required
 def users_following(user_id):
     return render_template(
-        'users/following.html', user=User.query.get(user_id))
+        'users/following.html', user=User.query.get_or_404(user_id))
 
 
 @app.route('/users/<int:user_id>/followers', methods=['GET'])
 @login_required
 def users_followers(user_id):
     return render_template(
-        'users/followers.html', user=User.query.get(user_id))
+        'users/followers.html', user=User.query.get_or_404(user_id))
 
 
 @app.route('/users/<int:user_id>', methods=["GET"])
 def users_show(user_id):
-    found_user = User.query.get(user_id)
+    found_user = User.query.get_or_404(user_id)
     return render_template('users/show.html', user=found_user)
 
 
@@ -153,10 +153,10 @@ def users_show(user_id):
 @login_required
 @ensure_correct_user
 def users_edit(user_id):
-    found_user = User.query.get(user_id)
+    found_user = User.query.get_or_404(user_id)
     return render_template(
         'users/edit.html',
-        form=UserForm(obj=found_user),
+        form=EditUserForm(obj=found_user),
         user_id=found_user.id)
 
 
@@ -164,13 +164,16 @@ def users_edit(user_id):
 @login_required
 @ensure_correct_user
 def users_update(user_id):
-    found_user = User.query.get(user_id)
-    form = UserForm(request.form)
+    found_user = User.query.get_or_404(user_id)
+    form = EditUserForm(request.form)
     if form.validate():
         if User.authenticate(found_user.username, form.password.data):
             found_user.username = form.username.data
             found_user.email = form.email.data
             found_user.image_url = form.image_url.data or "/static/images/default-pic.png"
+            found_user.bio = form.bio.data
+            found_user.location = form.location.data
+            found_user.header_image_url = form.header_image_url.data
             db.session.add(found_user)
             db.session.commit()
             return redirect(url_for('users_show', user_id=user_id))
@@ -185,7 +188,7 @@ def users_update(user_id):
 @login_required
 @ensure_correct_user
 def users_destroy(user_id):
-    found_user = User.query.get(user_id)
+    found_user = User.query.get_or_404(user_id)
     db.session.delete(found_user)
     db.session.commit()
     return redirect(url_for('users_new'))
@@ -214,7 +217,7 @@ def messages_new(user_id):
 
 @app.route('/users/<int:user_id>/messages/<int:message_id>', methods=["GET"])
 def messages_show(user_id, message_id):
-    found_message = Message.query.get(message_id)
+    found_message = Message.query.get_or_404(message_id)
     return render_template('messages/show.html', message=found_message)
 
 
@@ -223,7 +226,7 @@ def messages_show(user_id, message_id):
 @login_required
 @ensure_correct_user
 def messages_destroy(user_id, message_id):
-    found_message = Message.query.get(message_id)
+    found_message = Message.query.get_or_404(message_id)
     db.session.delete(found_message)
     db.session.commit()
     return redirect(url_for('users_show', user_id=user_id))
@@ -233,8 +236,11 @@ def messages_destroy(user_id, message_id):
 def root():
     messages = []
     if current_user.is_authenticated:
-        messages = Message.query.order_by(
-            Message.timestamp.desc()).limit(100).all()
+        user_ids = [followee.id for followee in current_user.following
+                    ] + [current_user.id]
+        messages = Message.query.filter(
+            Message.user_id.in_(user_ids)).order_by(
+                Message.timestamp.desc()).limit(100).all()
     return render_template('home.html', messages=messages)
 
 
@@ -250,3 +256,8 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404
