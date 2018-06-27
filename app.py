@@ -143,6 +143,13 @@ def users_followers(user_id):
         'users/followers.html', user=User.query.get_or_404(user_id))
 
 
+@app.route('/users/<int:user_id>/likes', methods=['GET'])
+@login_required
+def user_likes(user_id):
+    return render_template(
+        'users/likes.html', user=User.query.get_or_404(user_id))
+
+
 @app.route('/users/<int:user_id>', methods=["GET"])
 def users_show(user_id):
     found_user = User.query.get_or_404(user_id)
@@ -268,4 +275,4 @@ def messages_like(user_id, message_id):
     message = Message.query.get_or_404(message_id)
     current_user.likes.append(message)
     db.session.commit()
-    redirect(url_for('root'))
+    return redirect(url_for('user_likes', user_id=current_user.id))

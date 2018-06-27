@@ -57,7 +57,10 @@ class User(db.Model, UserMixin):
     password = db.Column(db.Text)
     messages = db.relationship('Message', backref='user', lazy='dynamic')
     likes = db.relationship(
-        'Message', secondary=Likes, backref=db.backref('likers'))
+        'Message',
+        secondary=Likes,
+        backref=db.backref('likers'),
+        lazy='dynamic')
     followers = db.relationship(
         "User",
         secondary=FollowersFollowee,
