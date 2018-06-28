@@ -17,7 +17,6 @@ if os.environ.get('ENV') == 'production':
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 else:
     app.config['DEBUG'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://localhost/warbler_db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
@@ -33,6 +32,14 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from models import User, Message
+
+
+def connect_to_db(app, db_uri="postgres://localhost/warbler_db"):
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    db.init_app(app)
+
+
+connect_to_db(app)
 
 
 @login_manager.user_loader

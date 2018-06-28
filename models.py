@@ -80,9 +80,40 @@ class User(db.Model, UserMixin):
         return False
 
 
-db.create_all()
-
-
 def example_data():
-    """Create sample data for testing."""
-    pass
+    """Function to add simple data to the test database."""
+
+    u1 = User(
+        email='booboo@email.com',
+        username='booboo1',
+        password='iloveclowns',
+        bio='I LIVE IN A CIRCUS',
+        location='The Center Ring')
+    u2 = User(
+        email='Ariel@underthesea.com',
+        username='mermaid88',
+        password='dinglehopper',
+        bio='Chicken of the sea',
+        location="King Triton's Kingdom")
+    u3 = User(
+        email='Whiskey@dogbook.com',
+        username='ILOVEFOOD',
+        password='treats',
+        bio="GIMME FOOD",
+        location="rithm")
+
+    m1 = Message(text="Hey everybody I'm a clown", user_id=1)
+    m2 = Message(text="I wanna be where the people are", user_id=2)
+    m3 = Message(text="FOOD FOOD FOOD", user_id=3)
+
+    db.session.add(u1)
+    db.session.add(u2)
+    db.session.add(u3)
+    db.session.add(m1)
+    db.session.add(m2)
+    db.session.add(m3)
+
+    db.session.commit()
+
+
+db.create_all()

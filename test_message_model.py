@@ -1,15 +1,18 @@
 from unittest import TestCase
-from app import app, db
-from models import Message
+from app import db, app, connect_to_db
+from models import Message, example_data
+
+connect_to_db(app, db_uri="postgres://localhost/warbler_db_test")
 
 
 class MessageModelTests(TestCase):
     def setUp(self):
         db.create_all()
+        example_data()
 
     def tearDown(self):
         db.session.close()
-        # db.drop_all()
+        db.drop_all()
 
     def test_message_creation(self):
         new_message = Message(text="This is a test message", user_id=1)
