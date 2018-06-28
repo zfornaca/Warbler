@@ -22,19 +22,6 @@ FollowersFollowee = db.Table(
               db.ForeignKey('users.id', ondelete="cascade")),
     db.CheckConstraint('follower_id != followee_id', name="no_self_follow"))
 
-# Likes = db.table(
-#     'likes',
-#     db.Column(
-#         'user_id',
-#         db.Integer,
-#         db.ForeignKey('users.id', ondelete="cascade"),
-#         primary_key=True),
-#     db.Column(
-#         'message_id',
-#         db.Integer,
-#         db.ForeignKey('messages.id', ondelete="cascade"),
-#         primary_key=True))
-
 Likes = db.Table(
     'likes', db.Column('id', db.Integer, primary_key=True),
     db.Column('user_id', db.Integer,
@@ -94,3 +81,8 @@ class User(db.Model, UserMixin):
 
 
 db.create_all()
+
+
+def example_data():
+    """Create sample data for testing."""
+    pass
