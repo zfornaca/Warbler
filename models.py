@@ -83,22 +83,24 @@ class User(db.Model, UserMixin):
 def example_data():
     """Function to add simple data to the test database."""
 
+    # iloveclowns
     u1 = User(
         email='booboo@email.com',
         username='booboo1',
-        password='iloveclowns',
+        password=User.hash_password('iloveclowns'),
         bio='I LIVE IN A CIRCUS',
         location='The Center Ring')
+
     u2 = User(
         email='Ariel@underthesea.com',
         username='mermaid88',
-        password='dinglehopper',
+        password=User.hash_password('dinglehopper'),
         bio='Chicken of the sea',
         location="King Triton's Kingdom")
     u3 = User(
         email='Whiskey@dogbook.com',
         username='ILOVEFOOD',
-        password='treats',
+        password=User.hash_password('treats'),
         bio="GIMME FOOD",
         location="rithm")
 

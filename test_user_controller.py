@@ -17,7 +17,9 @@ class UserControllerTests(TestCase):
     # Test that a user who isn't logged in cannot access routes
     # requiring a login
     def test_authenticated_routes(self):
-        pass
+        client = app.test_client()
+        response = client.get('/users/1/following', follow_redirects=True)
+        # self.assertIn(b'Welcome back.', response.data)
 
     # Test user creation process (i.e. after form is submitted,
     # a user's info is properly displayed on profile page)
