@@ -15,11 +15,11 @@
         {% if current_user.id != user.id %}
         {% if current_user.is_authenticated %}
           {% if current_user.is_liking(message) %}
-            <form method="POST" action="{{url_for('messages_unlike', user_id=current_user.id, message_id=message.id)}}?_method=DELETE">
+            <form style="position:relative;z-index:2" method="POST" action="{{url_for('messages_unlike', user_id=current_user.id, message_id=message.id)}}">
               <input type="submit" value="Unlike" class="btn btn-primary like">
             </form>
           {% else %}
-            <form method="POST" action="{{url_for('messages_like', user_id=current_user.id, message_id=message.id)}}">
+            <form style="position:relative;z-index:2" method="POST" action="{{url_for('messages_like', user_id=current_user.id, message_id=message.id)}}">
               <input type="submit" value="Like" class="btn btn-outline-primary like">
             </form>
           {% endif %}

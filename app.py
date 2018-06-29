@@ -284,15 +284,15 @@ def messages_like(user_id, message_id):
     message = Message.query.get_or_404(message_id)
     current_user.likes.append(message)
     db.session.commit()
-    return redirect(url_for('user_likes', user_id=current_user.id))
+    return "like"
 
 
 @app.route(
-    '/users/<int:user_id>/messages/<int:message_id>/like', methods=['DELETE'])
+    '/users/<int:user_id>/messages/<int:message_id>/unlike', methods=['POST'])
 @login_required
 def messages_unlike(user_id, message_id):
     message = Message.query.get_or_404(message_id)
     current_user.likes.remove(message)
     db.session.add(current_user)
     db.session.commit()
-    return redirect(url_for('user_likes', user_id=current_user.id))
+    return "unlike"
