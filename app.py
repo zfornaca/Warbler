@@ -23,7 +23,7 @@ app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or "it's a secret"
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 modus = Modus(app)
 bcrypt = Bcrypt(app)
@@ -277,9 +277,22 @@ def page_not_found(error):
     return render_template('page_not_found.html'), 404
 
 
-@app.route('/users/<int:user_id>/messages/<int:message_id>/like')
+@app.route(
+    '/users/<int:user_id>/messages/<int:message_id>/like', methods=['POST'])
+@login_required
 def messages_like(user_id, message_id):
     message = Message.query.get_or_404(message_id)
     current_user.likes.append(message)
+    db.session.commit()
+    return redirect(url_for('user_likes', user_id=current_user.id))
+
+
+@app.route(
+    '/users/<int:user_id>/messages/<int:message_id>/like', methods=['DELETE'])
+@login_required
+def messages_unlike(user_id, message_id):
+    message = Message.query.get_or_404(message_id)
+    current_user.likes.remove(message)
+    db.session.add(current_user)
     db.session.commit()
     return redirect(url_for('user_likes', user_id=current_user.id))

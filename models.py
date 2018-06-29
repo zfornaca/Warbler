@@ -13,6 +13,9 @@ class Message(db.Model):
     user_id = db.Column(db.Integer,
                         db.ForeignKey('users.id', ondelete='CASCADE'))
 
+    def is_liked_by(self, current_user):
+        return bool(self.likers.filter_by(id=current_user.id).first())
+
 
 FollowersFollowee = db.Table(
     'follows', db.Column('id', db.Integer, primary_key=True),
@@ -64,6 +67,9 @@ class User(db.Model, UserMixin):
 
     def is_following(self, user):
         return bool(self.following.filter_by(id=user.id).first())
+
+    def is_liking(self, message):
+        return bool(self.likes.filter_by(id=message.id).first())
 
     @staticmethod
     def hash_password(plaintext_pw):

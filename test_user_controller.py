@@ -19,7 +19,8 @@ class UserControllerTests(TestCase):
     def test_authenticated_routes(self):
         client = app.test_client()
         response = client.get('/users/1/following', follow_redirects=True)
-        # self.assertIn(b'Welcome back.', response.data)
+        print(response.data)
+        self.assertIn(b'Welcome back.', response.data)
 
     # Test user creation process (i.e. after form is submitted,
     # a user's info is properly displayed on profile page)
