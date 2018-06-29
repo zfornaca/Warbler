@@ -13,6 +13,9 @@ class Message(db.Model):
     user_id = db.Column(db.Integer,
                         db.ForeignKey('users.id', ondelete='CASCADE'))
 
+    def is_liked_by(self, current_user):
+        return bool(self.likers.filter_by(id=current_user.id).first())
+
 
 FollowersFollowee = db.Table(
     'follows', db.Column('id', db.Integer, primary_key=True),
@@ -21,19 +24,6 @@ FollowersFollowee = db.Table(
     db.Column('follower_id', db.Integer,
               db.ForeignKey('users.id', ondelete="cascade")),
     db.CheckConstraint('follower_id != followee_id', name="no_self_follow"))
-
-# Likes = db.table(
-#     'likes',
-#     db.Column(
-#         'user_id',
-#         db.Integer,
-#         db.ForeignKey('users.id', ondelete="cascade"),
-#         primary_key=True),
-#     db.Column(
-#         'message_id',
-#         db.Integer,
-#         db.ForeignKey('messages.id', ondelete="cascade"),
-#         primary_key=True))
 
 Likes = db.Table(
     'likes', db.Column('id', db.Integer, primary_key=True),
@@ -78,6 +68,9 @@ class User(db.Model, UserMixin):
     def is_following(self, user):
         return bool(self.following.filter_by(id=user.id).first())
 
+    def is_liking(self, message):
+        return bool(self.likes.filter_by(id=message.id).first())
+
     @staticmethod
     def hash_password(plaintext_pw):
         return bcrypt.generate_password_hash(plaintext_pw).decode('UTF-8')
@@ -91,6 +84,44 @@ class User(db.Model, UserMixin):
             if is_authenticated:
                 return found_user
         return False
+
+
+def example_data():
+    """Function to add simple data to the test database."""
+
+    # iloveclowns
+    u1 = User(
+        email='booboo@email.com',
+        username='booboo1',
+        password=User.hash_password('iloveclowns'),
+        bio='I LIVE IN A CIRCUS',
+        location='The Center Ring')
+
+    u2 = User(
+        email='Ariel@underthesea.com',
+        username='mermaid88',
+        password=User.hash_password('dinglehopper'),
+        bio='Chicken of the sea',
+        location="King Triton's Kingdom")
+    u3 = User(
+        email='Whiskey@dogbook.com',
+        username='ILOVEFOOD',
+        password=User.hash_password('treats'),
+        bio="GIMME FOOD",
+        location="rithm")
+
+    m1 = Message(text="Hey everybody I'm a clown", user_id=1)
+    m2 = Message(text="I wanna be where the people are", user_id=2)
+    m3 = Message(text="FOOD FOOD FOOD", user_id=3)
+
+    db.session.add(u1)
+    db.session.add(u2)
+    db.session.add(u3)
+    db.session.add(m1)
+    db.session.add(m2)
+    db.session.add(m3)
+
+    db.session.commit()
 
 
 db.create_all()

@@ -17,14 +17,13 @@ if os.environ.get('ENV') == 'production':
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 else:
     app.config['DEBUG'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://localhost/warbler_db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or "it's a secret"
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 modus = Modus(app)
 bcrypt = Bcrypt(app)
@@ -33,6 +32,14 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from models import User, Message
+
+
+def connect_to_db(app, db_uri="postgres://localhost/warbler_db"):
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    db.init_app(app)
+
+
+connect_to_db(app)
 
 
 @login_manager.user_loader
@@ -270,9 +277,22 @@ def page_not_found(error):
     return render_template('page_not_found.html'), 404
 
 
-@app.route('/users/<int:user_id>/messages/<int:message_id>/like')
+@app.route(
+    '/users/<int:user_id>/messages/<int:message_id>/like', methods=['POST'])
+@login_required
 def messages_like(user_id, message_id):
     message = Message.query.get_or_404(message_id)
     current_user.likes.append(message)
+    db.session.commit()
+    return redirect(url_for('user_likes', user_id=current_user.id))
+
+
+@app.route(
+    '/users/<int:user_id>/messages/<int:message_id>/like', methods=['DELETE'])
+@login_required
+def messages_unlike(user_id, message_id):
+    message = Message.query.get_or_404(message_id)
+    current_user.likes.remove(message)
+    db.session.add(current_user)
     db.session.commit()
     return redirect(url_for('user_likes', user_id=current_user.id))
