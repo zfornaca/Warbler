@@ -9,6 +9,7 @@ class UserControllerTests(TestCase):
     def setUp(self):
         db.create_all()
         example_data()
+        app.config['WTF_CSRF_ENABLED'] = False
 
     def tearDown(self):
         db.session.close()
@@ -25,15 +26,51 @@ class UserControllerTests(TestCase):
     # Test user creation process (i.e. after form is submitted,
     # a user's info is properly displayed on profile page)
     def test_user_creation_routes(self):
-        pass
+        client = app.test_client()
+        response = client.post(
+            '/signup',
+            data={
+                'username': 'mailydude',
+                'email': 'maily@email.com',
+                'password': 'emailme'
+            },
+            follow_redirects=True)
+        self.assertIn(b'@mailydude', response.data)
 
     # Test user editing process
     def test_user_editing_routes(self):
-        pass
+        client = app.test_client()
+        login_result = client.post(
+            '/login',
+            data={
+                'username': 'booboo1',
+                'password': 'iloveclowns'
+            },
+            follow_redirects=True)
+
+        response = client.patch(
+            '/users/1',
+            data={
+                'username': 'mailyd00d',
+                'email': 'maily@email.com',
+                'password': 'iloveclowns'
+            },
+            follow_redirects=True)
+        self.assertIn(b'@mailyd00d', response.data)
 
     # Test user deletion process
-    def test_user_deletion_routes(self):
-        pass
+    # def test_user_deletion_routes(self):
+    #     client = app.test_client()
+    #     login_result = client.post(
+    #         '/login',
+    #         data={
+    #             'username': 'booboo1',
+    #             'password': 'iloveclowns'
+    #         },
+    #         follow_redirects=True)
+
+    #     response = client.delete('/users/1', follow_redirects=True)
+    # self.assertNotIn(b'@', response.data)
 
     # Test adding a follower
     def test_adding_follower(self):
