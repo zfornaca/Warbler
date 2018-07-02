@@ -526,3 +526,7 @@ nav + .container {
 #e404 {
   text-align: center;
 }
+
+.like {
+  z-index: 2;
+}
